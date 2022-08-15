@@ -1,4 +1,4 @@
-/*global chrome, tgs, gsStorage, gsUtils */
+/*global tgs, gsStorage, gsUtils */
 (function(global) {
   'use strict';
 
@@ -13,8 +13,8 @@
     var notice = tgs.requestNotice();
     if (
       notice &&
-      notice.hasOwnProperty('text') &&
-      notice.hasOwnProperty('version')
+      Object.hasOwn(notice, 'text') &&
+      Object.hasOwn(notice, 'version')
     ) {
       var noticeContentEl = document.getElementById('gsNotice');
       noticeContentEl.innerHTML = notice.text;

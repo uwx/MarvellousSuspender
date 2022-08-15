@@ -49,27 +49,27 @@
       sender,
       sendResponse
     ) {
-      if (request.hasOwnProperty('action')) {
+      if (Object.hasOwn(request, 'action')) {
         if (request.action === 'requestInfo') {
           sendResponse(buildReportTabStatePayload());
           return false;
         }
       }
 
-      if (request.hasOwnProperty('scrollPos')) {
+      if (Object.hasOwn(request, 'scrollPos')) {
         if (request.scrollPos !== '' && request.scrollPos !== '0') {
           document.body.scrollTop = request.scrollPos;
           document.documentElement.scrollTop = request.scrollPos;
         }
       }
-      if (request.hasOwnProperty('ignoreForms')) {
+      if (Object.hasOwn(request, 'ignoreForms')) {
         isIgnoreForms = request.ignoreForms;
         if (isIgnoreForms) {
           initFormInputListener();
         }
         isReceivingFormInput = isReceivingFormInput && isIgnoreForms;
       }
-      if (request.hasOwnProperty('tempWhitelist')) {
+      if (Object.hasOwn(request, 'tempWhitelist')) {
         if (isReceivingFormInput && !request.tempWhitelist) {
           isReceivingFormInput = false;
         }

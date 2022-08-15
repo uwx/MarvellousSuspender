@@ -1,4 +1,4 @@
-/*global chrome, gsSession, localStorage, gsUtils */
+/*global gsSession, localStorage, gsUtils */
 'use strict';
 
 var gsStorage = {

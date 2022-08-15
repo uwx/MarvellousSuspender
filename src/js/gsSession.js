@@ -1,4 +1,4 @@
-/*global chrome, localStorage, tgs, gsStorage, gsIndexedDb, gsUtils, gsChrome, gsTabCheckManager, gsTabDiscardManager */
+/*global tgs, gsStorage, gsIndexedDb, gsUtils, gsChrome, gsTabCheckManager, gsTabDiscardManager */
 // eslint-disable-next-line no-unused-vars
 var gsSession = (function() {
   'use strict';

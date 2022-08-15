@@ -1,4 +1,4 @@
-/*global chrome, gsUtils */
+/*global gsUtils */
 'use strict';
 // eslint-disable-next-line no-unused-vars
 var gsChrome = {

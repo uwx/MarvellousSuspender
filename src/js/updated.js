@@ -1,4 +1,4 @@
-/*global chrome, gsSession, gsUtils */
+/*global gsSession, gsUtils */
 (function(global) {
   'use strict';
 

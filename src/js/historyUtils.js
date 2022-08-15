@@ -1,4 +1,4 @@
-/* global chrome, gsIndexedDb, gsUtils */
+/* global gsIndexedDb, gsUtils */
 // eslint-disable-next-line no-unused-vars
 var historyUtils = (function(global) {
   'use strict';

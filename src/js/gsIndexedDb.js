@@ -1,4 +1,4 @@
-/*global chrome, db, tgs, gsUtils, gsChrome, gsSession */
+/*global db, tgs, gsUtils, gsChrome, gsSession */
 'use strict';
 
 var gsIndexedDb = {

@@ -1,9 +1,7 @@
-/* global chrome, gsUtils */
-(function(global) {
-  'use strict';
-
+/* global gsUtils */
+(() => {
   try {
-    chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
+    chrome.extension.getBackgroundPage().tgs.setViewGlobals(this);
   } catch (e) {
     window.setTimeout(() => window.location.reload(), 1000);
     return;
@@ -11,12 +9,12 @@
 
   function init() {
     document
-      .getElementById('restartExtension')
+      .querySelector('#restartExtension')
       .addEventListener('click', function() {
         chrome.runtime.reload();
       });
     document
-      .getElementById('sessionManagementLink')
+      .querySelector('#sessionManagementLink')
       .addEventListener('click', function() {
         chrome.tabs.create({ url: chrome.extension.getURL('history.html') });
       });

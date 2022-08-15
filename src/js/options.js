@@ -1,4 +1,4 @@
-/*global chrome, gsStorage, gsChrome, gsUtils */
+/*global gsStorage, gsChrome, gsUtils */
 (function(global) {
   try {
     chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);

@@ -1,4 +1,4 @@
-/*global chrome, historyItems, historyUtils, gsSession, gsIndexedDb, gsUtils, gsStorage */
+/*global historyItems, historyUtils, gsSession, gsIndexedDb, gsUtils, gsStorage */
 (function(global) {
   'use strict';
 

@@ -1,4 +1,4 @@
-/*global chrome, tgs, gsUtils, gsFavicon, gsStorage, gsChrome */
+/*global tgs, gsUtils, gsFavicon, gsStorage, gsChrome */
 (function(global) {
   'use strict';
 

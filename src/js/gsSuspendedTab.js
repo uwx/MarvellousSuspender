@@ -1,8 +1,6 @@
 /*global tgs, gsFavicon, gsStorage, gsSession, gsUtils, gsIndexedDb, gsChrome, chrome */
 // eslint-disable-next-line no-unused-vars
-var gsSuspendedTab = (function() {
-  'use strict';
-
+const gsSuspendedTab = (function() {
   async function initTab(tab, tabView, { quickInit }) {
     if (!tabView) {
       gsUtils.warning(
@@ -17,7 +15,7 @@ var gsSuspendedTab = (function() {
 
     // Set title
     let title = gsUtils.getSuspendedTitle(suspendedUrl);
-    if (title.indexOf('<') >= 0) {
+    if (title.includes('<')) {
       // Encode any raw html tags that might be used in the title
       title = gsUtils.htmlEncode(title);
     }
@@ -84,13 +82,13 @@ var gsSuspendedTab = (function() {
   }
 
   function showNoConnectivityMessage(tabView) {
-    if (!tabView.document.getElementById('disconnectedNotice')) {
+    if (!tabView.document.querySelector('#disconnectedNotice')) {
       loadToastTemplate(tabView.document);
     }
-    tabView.document.getElementById('disconnectedNotice').style.display =
+    tabView.document.querySelector('#disconnectedNotice').style.display =
       'none';
     setTimeout(function() {
-      tabView.document.getElementById('disconnectedNotice').style.display =
+      tabView.document.querySelector('#disconnectedNotice').style.display =
         'block';
     }, 50);
   }
@@ -135,43 +133,43 @@ var gsSuspendedTab = (function() {
 
   function setTitle(_document, title) {
     _document.title = title;
-    _document.getElementById('gsTitle').innerHTML = title;
-    _document.getElementById('gsTopBarTitle').innerHTML = title;
+    _document.querySelector('#gsTitle').innerHTML = title;
+    _document.querySelector('#gsTopBarTitle').innerHTML = title;
 
     //Check if there are updates
-    let el = _document.getElementById('tmsUpdateAvailable');
+    let el = _document.querySelector('#tmsUpdateAvailable');
     el.style.display = gsStorage.getOption(gsStorage.UPDATE_AVAILABLE) ? 'block' : 'none';
     el.style.paddingTop = '80px';
     // Prevent unsuspend by parent container
     // Using mousedown event otherwise click can still be triggered if
     // mouse is released outside of this element
-    _document.getElementById('gsTopBarTitle').onmousedown = function(e) {
+    _document.querySelector('#gsTopBarTitle').addEventListener('mousedown', function(e) {
       e.stopPropagation();
-    };
+    });
 
     setGoToUpdateHandler(_document);
   }
 
   function setGoToUpdateHandler(_document) {
-    _document.getElementById('gotoUpdatePage').onclick = async function(e) {
+    _document.querySelector('#gotoUpdatePage').addEventListener('click', async function(e) {
       await gsChrome.tabsCreate(chrome.extension.getURL('update.html'));
-    };
+    });
   }
 
   function setUrl(_document, url) {
-    _document.getElementById('gsTopBarUrl').innerHTML = cleanUrl(url);
-    _document.getElementById('gsTopBarUrl').setAttribute('href', url);
-    _document.getElementById('gsTopBarUrl').onmousedown = function(e) {
+    _document.querySelector('#gsTopBarUrl').innerHTML = cleanUrl(url);
+    _document.querySelector('#gsTopBarUrl').setAttribute('href', url);
+    _document.querySelector('#gsTopBarUrl').addEventListener('mousedown', function(e) {
       e.stopPropagation();
-    };
+    });
   }
 
   function setFaviconMeta(_document, faviconMeta) {
     _document
-      .getElementById('gsTopBarImg')
+      .querySelector('#gsTopBarImg')
       .setAttribute('src', faviconMeta.normalisedDataUrl);
     _document
-      .getElementById('gsFavicon')
+      .querySelector('#gsFavicon')
       .setAttribute('href', faviconMeta.transparentDataUrl);
   }
 
@@ -184,22 +182,22 @@ var gsSuspendedTab = (function() {
 
     if (theme === 'dark' && isLowContrastFavicon) {
       _document
-        .getElementById('faviconWrap')
+        .querySelector('#faviconWrap')
         .classList.add('faviconWrapLowContrast');
     } else {
       _document
-        .getElementById('faviconWrap')
+        .querySelector('#faviconWrap')
         .classList.remove('faviconWrapLowContrast');
     }
   }
 
   function setReason(_document, reason) {
-    let reasonMsgEl = _document.getElementById('reasonMsg');
+    let reasonMsgEl = _document.querySelector('#reasonMsg');
     if (!reasonMsgEl) {
       reasonMsgEl = _document.createElement('div');
       reasonMsgEl.setAttribute('id', 'reasonMsg');
       reasonMsgEl.classList.add('reasonMsg');
-      const containerEl = _document.getElementById('suspendedMsg-instr');
+      const containerEl = _document.querySelector('#suspendedMsg-instr');
       containerEl.insertBefore(reasonMsgEl, containerEl.firstChild);
     }
     reasonMsgEl.innerHTML = reason;
@@ -224,18 +222,18 @@ var gsSuspendedTab = (function() {
   function buildImagePreview(_document, tab, previewUri) {
     return new Promise(resolve => {
       const previewEl = _document.createElement('div');
-      const bodyEl = _document.getElementsByTagName('body')[0];
+      const bodyEl = _document.querySelectorAll('body')[0];
       previewEl.setAttribute('id', 'gsPreviewContainer');
       previewEl.classList.add('gsPreviewContainer');
-      previewEl.innerHTML = _document.getElementById(
-        'previewTemplate',
+      previewEl.innerHTML = _document.querySelector(
+        '#previewTemplate',
       ).innerHTML;
       const unsuspendTabHandler = buildUnsuspendTabHandler(_document, tab);
-      previewEl.onclick = unsuspendTabHandler;
+      previewEl.addEventListener('click', unsuspendTabHandler);
       gsUtils.localiseHtml(previewEl);
-      bodyEl.appendChild(previewEl);
+      bodyEl.append(previewEl);
 
-      const previewImgEl = _document.getElementById('gsPreviewImg');
+      const previewImgEl = _document.querySelector('#gsPreviewImg');
       const onLoadedHandler = function() {
         previewImgEl.removeEventListener('load', onLoadedHandler);
         previewImgEl.removeEventListener('error', onLoadedHandler);
@@ -248,9 +246,9 @@ var gsSuspendedTab = (function() {
   }
 
   function addWatermarkHandler(_document) {
-    _document.querySelector('.watermark').onclick = () => {
+    _document.querySelector('.watermark').addEventListener('click', () => {
       chrome.tabs.create({ url: chrome.extension.getURL('about.html') });
-    };
+    });
   }
 
   async function toggleImagePreviewVisibility(
@@ -260,7 +258,7 @@ var gsSuspendedTab = (function() {
     previewUri,
   ) {
     const builtImagePreview =
-      _document.getElementById('gsPreviewContainer') !== null;
+      _document.querySelector('#gsPreviewContainer') !== null;
     if (
       !builtImagePreview &&
       previewUri &&
@@ -272,25 +270,25 @@ var gsSuspendedTab = (function() {
       addWatermarkHandler(_document);
     }
 
-    if (!_document.getElementById('gsPreviewContainer')) {
+    if (!_document.querySelector('#gsPreviewContainer')) {
       return;
     }
     const overflow = previewMode === '2' ? 'auto' : 'hidden';
     _document.body.style['overflow'] = overflow;
 
     if (previewMode === '0' || !previewUri) {
-      _document.getElementById('gsPreviewContainer').style.display = 'none';
-      _document.getElementById('suspendedMsg').style.display = 'flex';
+      _document.querySelector('#gsPreviewContainer').style.display = 'none';
+      _document.querySelector('#suspendedMsg').style.display = 'flex';
       _document.body.classList.remove('img-preview-mode');
     } else {
-      _document.getElementById('gsPreviewContainer').style.display = 'block';
-      _document.getElementById('suspendedMsg').style.display = 'none';
+      _document.querySelector('#gsPreviewContainer').style.display = 'block';
+      _document.querySelector('#suspendedMsg').style.display = 'none';
       _document.body.classList.add('img-preview-mode');
     }
   }
 
   function setCommand(_document, command) {
-    const hotkeyEl = _document.getElementById('hotkeyWrapper');
+    const hotkeyEl = _document.querySelector('#hotkeyWrapper');
     if (command) {
       hotkeyEl.innerHTML =
         '<span class="hotkeyCommand">(' + command + ')</span>';
@@ -324,9 +322,9 @@ var gsSuspendedTab = (function() {
 
   function setUnsuspendTabHandlers(_document, tab) {
     const unsuspendTabHandler = buildUnsuspendTabHandler(_document, tab);
-    _document.getElementById('gsTopBarUrl').onclick = unsuspendTabHandler;
-    _document.getElementById('gsTopBar').onmousedown = unsuspendTabHandler;
-    _document.getElementById('suspendedMsg').onclick = unsuspendTabHandler;
+    _document.querySelector('#gsTopBarUrl').addEventListener('click', unsuspendTabHandler);
+    _document.querySelector('#gsTopBar').addEventListener('mousedown', unsuspendTabHandler);
+    _document.querySelector('#suspendedMsg').addEventListener('click', unsuspendTabHandler);
   }
 
   function buildUnsuspendTabHandler(_document, tab) {
@@ -344,13 +342,13 @@ var gsSuspendedTab = (function() {
 
   function showUnsuspendAnimation(_document) {
     if (_document.body.classList.contains('img-preview-mode')) {
-      _document.getElementById('refreshSpinner').classList.add('spinner');
+      _document.querySelector('#refreshSpinner').classList.add('spinner');
     } else {
       _document.body.classList.add('waking');
-      _document.getElementById('snoozyImg').src = chrome.extension.getURL(
+      _document.querySelector('#snoozyImg').src = chrome.extension.getURL(
         'img/snoozy_tab_awake.svg',
       );
-      _document.getElementById('snoozySpinner').classList.add('spinner');
+      _document.querySelector('#snoozySpinner').classList.add('spinner');
     }
   }
 
@@ -358,9 +356,9 @@ var gsSuspendedTab = (function() {
     const toastEl = _document.createElement('div');
     toastEl.setAttribute('id', 'disconnectedNotice');
     toastEl.classList.add('toast-wrapper');
-    toastEl.innerHTML = _document.getElementById('toastTemplate').innerHTML;
+    toastEl.innerHTML = _document.querySelector('#toastTemplate').innerHTML;
     gsUtils.localiseHtml(toastEl);
-    _document.getElementsByTagName('body')[0].appendChild(toastEl);
+    _document.querySelectorAll('body')[0].appendChild(toastEl);
   }
 
   function cleanUrl(urlStr) {

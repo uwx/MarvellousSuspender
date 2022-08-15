@@ -1,8 +1,6 @@
-/*global chrome, localStorage, tgs, gsStorage, gsSession, gsMessages, gsUtils, gsTabDiscardManager, gsChrome, GsTabQueue, gsSuspendedTab */
+/*global tgs, gsStorage, gsSession, gsMessages, gsUtils, gsTabDiscardManager, gsChrome, GsTabQueue, gsSuspendedTab */
 // eslint-disable-next-line no-unused-vars
-var gsTabCheckManager = (function() {
-  'use strict';
-
+const gsTabCheckManager = (function() {
   const DEFAULT_CONCURRENT_TAB_CHECKS = 3;
   const DEFAULT_TAB_CHECK_TIMEOUT = 60 * 1000;
   const DEFAULT_TAB_CHECK_PROCESSING_DELAY = 500;
@@ -83,7 +81,7 @@ var gsTabCheckManager = (function() {
       if (
         !gsUtils.isSuspendedTab(_tab) ||
         !changeInfo ||
-        !changeInfo.hasOwnProperty('status') ||
+        !Object.hasOwn(changeInfo, 'status') ||
         changeInfo.status !== 'complete'
       ) {
         return;

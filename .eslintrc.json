@@ -9,8 +9,7 @@
     "webextensions": true
   },
   "extends": [
-    "eslint:recommended",
-    "prettier"
+    "eslint:recommended"
   ],
   "rules": {
     "no-console": 0,

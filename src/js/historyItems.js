@@ -1,4 +1,4 @@
-/*global chrome, gsSession, gsUtils, gsFavicon */
+/*global gsSession, gsUtils, gsFavicon */
 // eslint-disable-next-line no-unused-vars
 var historyItems = (function(global) {
   'use strict';

@@ -1,4 +1,4 @@
-/*global chrome, gsUtils, gsStorage */
+/*global gsUtils, gsStorage */
 (function(global) {
   'use strict';
 

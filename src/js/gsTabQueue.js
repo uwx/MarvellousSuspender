@@ -220,7 +220,7 @@ function GsTabQueue(queueId, queueProps) {
       };
 
       // If timeout timer has not yet been initiated, then start it now
-      if (!tabDetails.hasOwnProperty('timeoutTimer')) {
+      if (!Object.hasOwn(tabDetails, 'timeoutTimer')) {
         tabDetails.timeoutTimer = setTimeout(() => {
           gsUtils.log(tabDetails.tab.id, _queueId, 'Tab job timed out');
           _queueProperties.exceptionFn(

@@ -1,10 +1,9 @@
-/*global chrome, localStorage, gsStorage, gsChrome, gsMessages, gsSession, gsTabSuspendManager, gsTabDiscardManager, gsSuspendedTab, gsFavicon, tgs */
-'use strict';
+/*global gsStorage, gsChrome, gsMessages, gsSession, gsTabSuspendManager, gsTabDiscardManager, gsSuspendedTab, gsFavicon, tgs */
 
-var debugInfo = false;
-var debugError = false;
+let debugInfo = false;
+let debugError = false;
 
-var gsUtils = {
+const gsUtils = {
   STATUS_NORMAL: 'normal',
   STATUS_LOADING: 'loading',
   STATUS_SPECIAL: 'special',
@@ -24,7 +23,7 @@ var gsUtils = {
 
   // eslint-disable-line no-unused-vars
   contains: function(array, value) {
-    for (var i = 0; i < array.length; i++) {
+    for (let i = 0; i < array.length; i++) {
       if (array[i] === value) return true;
     }
     return false;
@@ -48,7 +47,7 @@ var gsUtils = {
       const errorLine = gsUtils
         .getStackTrace()
         .split('\n')
-        .filter(o => !ignores.find(p => o.indexOf(p) >= 0))
+        .filter(o => !ignores.some(p => o.includes(p)))
         .join('\n');
       args.push(`\n${errorLine}`);
       console.log(
@@ -75,10 +74,10 @@ var gsUtils = {
     }
     //NOTE: errorObj may be just a string :/
     if (debugError) {
-      const stackTrace = errorObj.hasOwnProperty('stack')
+      const stackTrace = Object.hasOwn(errorObj, 'stack')
         ? errorObj.stack
         : gsUtils.getStackTrace();
-      const errorMessage = errorObj.hasOwnProperty('message')
+      const errorMessage = Object.hasOwn(errorObj, 'message')
         ? errorObj.message
         : typeof errorObj === 'string'
           ? errorObj
@@ -89,7 +88,7 @@ var gsUtils = {
         gsUtils.getPrintableError(errorMessage, stackTrace, ...args),
       );
     } else {
-      // const logString = errorObj.hasOwnProperty('stack')
+      // const logString = Object.hasOwn(errorObj, 'stack')
       //   ? errorObj.stack
       //   : `${JSON.stringify(errorObj)}\n${gsUtils.getStackTrace()}`;
     }
@@ -103,7 +102,7 @@ var gsUtils = {
     return errorString;
   },
   getStackTrace: function() {
-    var obj = {};
+    const obj = {};
     Error.captureStackTrace(obj, gsUtils.getStackTrace);
     return obj.stack;
   },
@@ -133,11 +132,11 @@ var gsUtils = {
   },
 
   isValidTabWithUrl: function(tab) {
-    if (!tab || typeof tab == "undefined") {
+    if (!tab || typeof tab == 'undefined') {
       return false;
     }
     const url = gsUtils.getTabUrl(tab);
-    if (url && typeof url == "string" && url.length > 0) {
+    if (url && typeof url == 'string' && url.length > 0) {
       return true;
     }
     return false;
@@ -192,23 +191,23 @@ var gsUtils = {
       return false;
     }
     const url = gsUtils.getTabUrl(tab);
-    var isLocalExtensionPage =
+    const isLocalExtensionPage =
       url.indexOf('chrome-extension://' + chrome.runtime.id) === 0;
     return isLocalExtensionPage && !gsUtils.isSuspendedTab(tab);
   },
 
   isProtectedPinnedTab: function(tab) {
-    var dontSuspendPinned = gsStorage.getOption(gsStorage.IGNORE_PINNED);
+    const dontSuspendPinned = gsStorage.getOption(gsStorage.IGNORE_PINNED);
     return dontSuspendPinned && tab.pinned;
   },
 
   isProtectedAudibleTab: function(tab) {
-    var dontSuspendAudible = gsStorage.getOption(gsStorage.IGNORE_AUDIO);
+    const dontSuspendAudible = gsStorage.getOption(gsStorage.IGNORE_AUDIO);
     return dontSuspendAudible && tab.audible;
   },
 
   isProtectedActiveTab: function(tab) {
-    var dontSuspendActiveTabs = gsStorage.getOption(
+    const dontSuspendActiveTabs = gsStorage.getOption(
       gsStorage.IGNORE_ACTIVE_TABS,
     );
     return (
@@ -217,8 +216,7 @@ var gsUtils = {
   },
 
   // Note: Normal tabs may be in a discarded state
-  isNormalTab: function(tab, excludeDiscarded) {
-    excludeDiscarded = excludeDiscarded || false;
+  isNormalTab: function(tab, excludeDiscarded = false) {
     return (
       !gsUtils.isSpecialTab(tab) &&
       !gsUtils.isSuspendedTab(tab, true) &&
@@ -226,34 +224,45 @@ var gsUtils = {
     );
   },
 
+  /**
+   * @param {chrome.tabs.Tab} tab
+   * @param {boolean} looseMatching
+   * @returns {boolean}
+   */
   isSuspendedTab: function(tab, looseMatching) {
     const url = tab.url || tab.pendingUrl;
     return gsUtils.isSuspendedUrl(url, looseMatching);
   },
 
+  /**
+   * @param {string} url
+   * @param {boolean} looseMatching
+   * @returns {boolean}
+   */
   isSuspendedUrl: function(url, looseMatching) {
     if (!url) {
       return false;
     } else if (looseMatching) {
-      return url.indexOf('suspended.html') > 0;
-    } else {
-      return url.indexOf(chrome.extension.getURL('suspended.html')) === 0;
+      return url.includes('suspended.html');
     }
+
+    return url.indexOf(chrome.extension.getURL('suspended.html')) === 0;
   },
 
   shouldSuspendDiscardedTabs: function() {
-    var suspendInPlaceOfDiscard = gsStorage.getOption(
+    const suspendInPlaceOfDiscard = gsStorage.getOption(
       gsStorage.SUSPEND_IN_PLACE_OF_DISCARD,
     );
-    var discardInPlaceOfSuspend = gsStorage.getOption(
+    const discardInPlaceOfSuspend = gsStorage.getOption(
       gsStorage.DISCARD_IN_PLACE_OF_SUSPEND,
     );
     return suspendInPlaceOfDiscard && !discardInPlaceOfSuspend;
   },
 
-  removeTabsByUrlAsPromised: function(url) {
-    return new Promise(async resolve => {
-      const tabs = await gsChrome.tabsQuery({ url });
+  removeTabsByUrlAsPromised: async function(url) {
+    const tabs = await gsChrome.tabsQuery({ url });
+
+    return await new Promise(resolve => {
       chrome.tabs.remove(tabs.map(o => o.id), () => {
         resolve();
       });
@@ -302,9 +311,9 @@ var gsUtils = {
   },
 
   checkSpecificWhiteList: function(url, whitelistString) {
-    var whitelistItems = whitelistString
-      ? whitelistString.split(/[\s\n]+/)
-      : [],
+    let whitelistItems = whitelistString
+        ? whitelistString.split(/\s+/)
+        : [],
       whitelisted;
 
     whitelisted = whitelistItems.some(function(item) {
@@ -314,8 +323,8 @@ var gsUtils = {
   },
 
   removeFromWhitelist: function(url) {
-    var oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '',
-      whitelistItems = oldWhitelistString.split(/[\s\n]+/).sort(),
+    let oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '',
+      whitelistItems = oldWhitelistString.split(/\s+/).sort(),
       i;
 
     for (i = whitelistItems.length - 1; i >= 0; i--) {
@@ -323,10 +332,10 @@ var gsUtils = {
         whitelistItems.splice(i, 1);
       }
     }
-    var whitelistString = whitelistItems.join('\n');
+    const whitelistString = whitelistItems.join('\n');
     gsStorage.setOptionAndSync(gsStorage.WHITELIST, whitelistString);
 
-    var key = gsStorage.WHITELIST;
+    const key = gsStorage.WHITELIST;
     gsUtils.performPostSaveUpdates(
       [key],
       { [key]: oldWhitelistString },
@@ -335,14 +344,14 @@ var gsUtils = {
   },
 
   testForMatch: function(whitelistItem, word) {
-    if (whitelistItem.length < 1) {
+    if (whitelistItem.length === 0) {
       return false;
 
       //test for regex ( must be of the form /foobar/ )
     } else if (
       whitelistItem.length > 2 &&
       whitelistItem.indexOf('/') === 0 &&
-      whitelistItem.indexOf('/', whitelistItem.length - 1) !== -1
+      whitelistItem.includes('/', whitelistItem.length - 1)
     ) {
       whitelistItem = whitelistItem.substring(1, whitelistItem.length - 1);
       try {
@@ -353,18 +362,18 @@ var gsUtils = {
       return new RegExp(whitelistItem).test(word);
 
       // test as substring
-    } else {
-      return word.indexOf(whitelistItem) >= 0;
     }
+    return word.includes(whitelistItem);
+
   },
 
   saveToWhitelist: function(newString) {
-    var oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '';
-    var newWhitelistString = oldWhitelistString + '\n' + newString;
+    const oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '';
+    let newWhitelistString = oldWhitelistString + '\n' + newString;
     newWhitelistString = gsUtils.cleanupWhitelist(newWhitelistString);
     gsStorage.setOptionAndSync(gsStorage.WHITELIST, newWhitelistString);
 
-    var key = gsStorage.WHITELIST;
+    const key = gsStorage.WHITELIST;
     gsUtils.performPostSaveUpdates(
       [key],
       { [key]: oldWhitelistString },
@@ -373,7 +382,7 @@ var gsUtils = {
   },
 
   cleanupWhitelist: function(whitelist) {
-    var whitelistItems = whitelist ? whitelist.split(/[\s\n]+/).sort() : '',
+    let whitelistItems = whitelist ? whitelist.split(/\s+/).sort() : '',
       i,
       j;
 
@@ -386,13 +395,17 @@ var gsUtils = {
         whitelistItems.splice(i, 1);
       }
     }
-    if (whitelistItems.length) {
+    if (whitelistItems.length > 0) {
       return whitelistItems.join('\n');
-    } else {
-      return whitelistItems;
     }
+    return whitelistItems;
+
   },
 
+  /**
+   * @param {Document} doc
+   * @returns {Promise<void>}
+   */
   documentReadyAsPromised: function(doc) {
     return new Promise(function(resolve) {
       if (doc.readyState !== 'loading') {
@@ -406,23 +419,18 @@ var gsUtils = {
   },
 
   localiseHtml: function(parentEl) {
-    let replaceTagFunc = function(match, p1) {
+    const replaceTagFunc = function(match, p1) {
       return p1 ? chrome.i18n.getMessage(p1) : '';
     };
-    for (let el of parentEl.getElementsByTagName('*')) {
-      if (el.hasAttribute('data-i18n')) {
-        el.innerHTML = el
-          .getAttribute('data-i18n')
+    for (const el of parentEl.querySelectorAll('*')) {
+      if (Object.hasOwn(el.dataset, 'i18n')) {
+        el.innerHTML = el.dataset.i18n
           .replace(/__MSG_(\w+)__/g, replaceTagFunc)
           .replace(/\n/g, '<br />');
       }
-      if (el.hasAttribute('data-i18n-tooltip')) {
-        el.setAttribute(
-          'data-i18n-tooltip',
-          el
-            .getAttribute('data-i18n-tooltip')
-            .replace(/__MSG_(\w+)__/g, replaceTagFunc),
-        );
+      if (Object.hasOwn(el.dataset, 'i18nTooltip')) {
+        el.dataset.i18nTooltip = el.dataset.i18nTooltip
+          .replace(/__MSG_(\w+)__/g, replaceTagFunc);
       }
     }
   },
@@ -436,8 +444,8 @@ var gsUtils = {
   },
 
   generateSuspendedUrl: function(url, title, scrollPos) {
-    let encodedTitle = gsUtils.encodeString(title);
-    var args =
+    const encodedTitle = gsUtils.encodeString(title);
+    const args =
       '#' +
       'ttl=' +
       encodedTitle +
@@ -457,8 +465,8 @@ var gsUtils = {
 
     // temporarily remove scheme
     if (rootUrlStr.indexOf('//') > 0) {
-      scheme = rootUrlStr.substring(0, rootUrlStr.indexOf('//') + 2);
-      rootUrlStr = rootUrlStr.substring(rootUrlStr.indexOf('//') + 2);
+      scheme = rootUrlStr.slice(0, Math.max(0, rootUrlStr.indexOf('//') + 2));
+      rootUrlStr = rootUrlStr.slice(Math.max(0, rootUrlStr.indexOf('//') + 2));
     }
 
     // remove path
@@ -470,18 +478,18 @@ var gsUtils = {
           rootUrlStr.indexOf('/') > 0
             ? rootUrlStr.indexOf('/')
             : rootUrlStr.length;
-        rootUrlStr = rootUrlStr.substring(0, pathStartIndex);
+        rootUrlStr = rootUrlStr.slice(0, Math.max(0, pathStartIndex));
       }
     } else {
       // remove query string
-      var match = rootUrlStr.match(/\/?[?#]+/);
+      let match = rootUrlStr.match(/\/?[#?]+/);
       if (match) {
-        rootUrlStr = rootUrlStr.substring(0, match.index);
+        rootUrlStr = rootUrlStr.slice(0, Math.max(0, match.index));
       }
       // remove trailing slash
       match = rootUrlStr.match(/\/$/);
       if (match) {
-        rootUrlStr = rootUrlStr.substring(0, match.index);
+        rootUrlStr = rootUrlStr.slice(0, Math.max(0, match.index));
       }
     }
 
@@ -493,11 +501,11 @@ var gsUtils = {
   },
 
   getHashVariable: function(key, urlStr) {
-    var valuesByKey = {},
+    let valuesByKey = {},
       keyPairRegEx = /^(.+)=(.+)/,
       hashStr;
 
-    if (!urlStr || urlStr.length === 0 || urlStr.indexOf('#') === -1) {
+    if (!urlStr || urlStr.length === 0 || !urlStr.includes('#')) {
       return false;
     }
 
@@ -509,32 +517,50 @@ var gsUtils = {
     }
 
     //handle possible unencoded final var called 'uri'
-    let uriIndex = hashStr.indexOf('uri=');
+    const uriIndex = hashStr.indexOf('uri=');
     if (uriIndex >= 0) {
-      valuesByKey.uri = hashStr.substr(uriIndex + 4);
-      hashStr = hashStr.substr(0, uriIndex);
+      valuesByKey.uri = hashStr.slice(uriIndex + 4);
+      hashStr = hashStr.slice(0, Math.max(0, uriIndex));
     }
 
-    hashStr.split('&').forEach(function(keyPair) {
-      if (keyPair && keyPair.match(keyPairRegEx)) {
+    for (const keyPair of hashStr.split('&')) {
+      if (keyPair && keyPairRegEx.test(keyPair)) {
         valuesByKey[keyPair.replace(keyPairRegEx, '$1')] = keyPair.replace(
           keyPairRegEx,
           '$2',
         );
       }
-    });
+    }
     return valuesByKey[key] || false;
   },
+
+  /**
+   * @param {string} urlStr
+   * @returns {string}
+   */
   getSuspendedTitle: function(urlStr) {
-    return gsUtils.decodeString(gsUtils.getHashVariable('ttl', urlStr) || '');
+    const searchParams = new URLSearchParams(urlStr.slice(urlStr.indexOf('#') + 1));
+    return searchParams.get('ttl') || '';
   },
+
+  /**
+   * @param {string} urlStr
+   * @returns {string}
+   */
   getSuspendedScrollPosition: function(urlStr) {
-    return gsUtils.decodeString(gsUtils.getHashVariable('pos', urlStr) || '');
+    const searchParams = new URLSearchParams(urlStr.slice(urlStr.indexOf('#') + 1));
+    return searchParams.get('pos', urlStr) || '';
   },
+
+  /**
+   * @param {string} urlStr
+   * @returns {string}
+   */
   getOriginalUrl: function(urlStr) {
+    const searchParams = new URLSearchParams(urlStr.slice(urlStr.indexOf('#') + 1));
     return (
-      gsUtils.getHashVariable('uri', urlStr) ||
-      gsUtils.decodeString(gsUtils.getHashVariable('url', urlStr) || '')
+      searchParams.get('uri', urlStr) ||
+      searchParams.get('url', urlStr) || ''
     );
   },
   getCleanTabTitle: function(tab) {
@@ -545,15 +571,16 @@ var gsUtils = {
       cleanedTitle === gsUtils.decodeString(tab.url) ||
       cleanedTitle === 'Suspended Tab'
     ) {
-      if (gsUtils.isSuspendedTab(tab)) {
-        cleanedTitle =
-          gsUtils.getSuspendedTitle(tab.url) || gsUtils.getOriginalUrl(tab.url);
-      } else {
-        cleanedTitle = tab.url;
-      }
+      cleanedTitle = gsUtils.isSuspendedTab(tab) ? gsUtils.getSuspendedTitle(tab.url) || gsUtils.getOriginalUrl(tab.url) : tab.url;
     }
     return cleanedTitle;
   },
+
+  /**
+   * @param {string} string
+   * @returns {string}
+   */
+
   decodeString: function(string) {
     try {
       return decodeURIComponent(string);
@@ -561,6 +588,11 @@ var gsUtils = {
       return string;
     }
   },
+
+  /**
+   * @param {string} string
+   * @returns {string}
+   */
   encodeString: function(string) {
     try {
       return encodeURIComponent(string);
@@ -579,7 +611,7 @@ var gsUtils = {
       .replace(/\+/g, ' ')
       .replace(/ +/g, ' ')
       .trim()
-      .replace(/[ ]/g, ' \u00B7 ');
+      .replace(/ /g, ' \u00B7 ');
   },
 
   getSuspendedTabCount: async function() {
@@ -590,25 +622,29 @@ var gsUtils = {
     return currentSuspendedTabs.length;
   },
 
+  /**
+   * @param {string} text
+   * @returns {string}
+   */
   htmlEncode: function(text) {
     return document
       .createElement('pre')
-      .appendChild(document.createTextNode(text)).parentNode.innerHTML;
+      .append(text).parentNode.innerHTML;
   },
 
   getChromeVersion: function() {
-    var raw = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+    const raw = navigator.userAgent.match(/Chrom(e|ium)\/(\d+)\./);
     return raw ? parseInt(raw[2], 10) : false;
   },
 
   generateHashCode: function(text) {
-    var hash = 0,
+    let hash = 0,
       i,
       chr,
       len;
     if (!text) return hash;
     for (i = 0, len = text.length; i < len; i++) {
-      chr = text.charCodeAt(i);
+      chr = text.codePointAt(i);
       hash = (hash << 5) - hash + chr;
       hash |= 0; // Convert to 32bit integer
     }
@@ -616,7 +652,7 @@ var gsUtils = {
   },
 
   getAllExpiredTabs: function(callback) {
-    var expiredTabs = [];
+    const expiredTabs = [];
     chrome.tabs.query({}, tabs => {
       for (const tab of tabs) {
         const timerDetails = tgs.getTabStatePropForTabId(
@@ -641,9 +677,9 @@ var gsUtils = {
     newValueBySettingKey,
   ) {
     chrome.tabs.query({}, function(tabs) {
-      tabs.forEach(function(tab) {
+      for (const tab of tabs) {
         if (gsUtils.isSpecialTab(tab)) {
-          return;
+          continue;
         }
 
         if (gsUtils.isSuspendedTab(tab)) {
@@ -655,7 +691,7 @@ var gsUtils = {
               gsUtils.isProtectedActiveTab(tab))
           ) {
             tgs.unsuspendTab(tab);
-            return;
+            continue;
           }
 
           //if theme or screenshot preferences have changed then refresh suspended tabs
@@ -703,11 +739,11 @@ var gsUtils = {
           ) {
             gsTabDiscardManager.queueTabForDiscard(tab);
           }
-          return;
+          continue;
         }
 
         if (!gsUtils.isNormalTab(tab, true)) {
-          return;
+          continue;
         }
 
         //update content scripts of normal tabs
@@ -739,7 +775,7 @@ var gsUtils = {
             (gsUtils.checkSpecificWhiteList(
               tab.url,
               oldValueBySettingKey[gsStorage.WHITELIST],
-              ) &&
+            ) &&
               !gsUtils.checkSpecificWhiteList(
                 tab.url,
                 newValueBySettingKey[gsStorage.WHITELIST],
@@ -769,12 +805,12 @@ var gsUtils = {
         //         });
         //     });
         // }
-      });
+      }
     });
 
     //if context menu has been disabled then remove from chrome
     if (gsUtils.contains(changedSettingKeys, gsStorage.ADD_CONTEXT)) {
-      var addContextMenu = gsStorage.getOption(gsStorage.ADD_CONTEXT);
+      const addContextMenu = gsStorage.getOption(gsStorage.ADD_CONTEXT);
       tgs.buildContextMenu(addContextMenu);
     }
 
@@ -788,7 +824,7 @@ var gsUtils = {
   },
 
   getWindowFromSession: function(windowId, session) {
-    var window = false;
+    let window = false;
     session.windows.some(function(curWindow) {
       //leave this as a loose matching as sometimes it is comparing strings. other times ints
       if (curWindow.id == windowId) {
@@ -804,10 +840,10 @@ var gsUtils = {
     if (!session || !session.windows) {
       return;
     }
-    for (var i = session.windows.length - 1; i >= 0; i--) {
-      var curWindow = session.windows[i];
-      for (var j = curWindow.tabs.length - 1; j >= 0; j--) {
-        var curTab = curWindow.tabs[j];
+    for (let i = session.windows.length - 1; i >= 0; i--) {
+      const curWindow = session.windows[i];
+      for (let j = curWindow.tabs.length - 1; j >= 0; j--) {
+        const curTab = curWindow.tabs[j];
         if (gsUtils.isInternalTab(curTab)) {
           curWindow.tabs.splice(j, 1);
         }
@@ -819,7 +855,7 @@ var gsUtils = {
   },
 
   getSimpleDate: function(date) {
-    var d = new Date(date);
+    const d = new Date(date);
     return (
       ('0' + d.getDate()).slice(-2) +
       '-' +
@@ -834,7 +870,7 @@ var gsUtils = {
   },
 
   getHumanDate: function(date) {
-    var monthNames = [
+    const monthNames = [
         'Jan',
         'Feb',
         'Mar',
@@ -866,9 +902,9 @@ var gsUtils = {
     //     suffix = 'th';
     // }
 
-    var ampm = currentHours >= 12 ? 'pm' : 'am';
-    var hoursString = currentHours % 12 || 12;
-    var minutesString = ('0' + currentMinutes).slice(-2);
+    const ampm = currentHours >= 12 ? 'pm' : 'am';
+    const hoursString = currentHours % 12 || 12;
+    const minutesString = ('0' + currentMinutes).slice(-2);
 
     return (
       currentDate +
@@ -885,13 +921,12 @@ var gsUtils = {
   },
 
   debounce: function(func, wait) {
-    var timeout;
+    let timeout;
     return function() {
-      var context = this,
-        args = arguments;
-      var later = function() {
+      const args = arguments;
+      const later = () => {
         timeout = null;
-        func.apply(context, args);
+        func.apply(this, args);
       };
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
@@ -916,7 +951,7 @@ var gsUtils = {
       } catch (e) {
         if (retries >= maxRetries) {
           gsUtils.warning('gsUtils', 'Max retries exceeded');
-          return Promise.reject(e);
+          throw e;
         }
         retries += 1;
         await gsUtils.setTimeout(retryWaitTime);

@@ -1,7 +1,7 @@
 /*global gsStorage, gsChrome, gsMessages, gsSession, gsTabSuspendManager, gsTabDiscardManager, gsSuspendedTab, gsFavicon, tgs */
 
-let debugInfo = false;
-let debugError = false;
+let debugInfo = true;
+let debugError = true;
 
 const gsUtils = {
   STATUS_NORMAL: 'normal',

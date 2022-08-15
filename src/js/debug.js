@@ -60,20 +60,19 @@
     }
     const debugInfos = await Promise.all(debugInfoPromises);
     for (const debugInfo of debugInfos) {
-      var html,
-        tableEl = document.getElementById('gsProfilerBody');
-      html = generateTabInfo(debugInfo);
+      const tableEl = document.querySelector('#gsProfilerBody');
+      const html = generateTabInfo(debugInfo);
       tableEl.innerHTML = tableEl.innerHTML + html;
     }
   }
 
   function addFlagHtml(elementId, getterFn, setterFn) {
     document.getElementById(elementId).innerHTML = getterFn();
-    document.getElementById(elementId).onclick = function(e) {
+    document.getElementById(elementId).addEventListener('click', function(e) {
       const newVal = !getterFn();
       setterFn(newVal);
       document.getElementById(elementId).innerHTML = newVal;
-    };
+    });
   }
 
   gsUtils.documentReadyAndLocalisedAsPromised(document).then(async function() {
@@ -100,7 +99,7 @@
         );
       }
     );
-    document.getElementById('claimSuspendedTabs').onclick = async function(e) {
+    document.querySelector('#claimSuspendedTabs').onclick = async function(e) {
       const tabs = await gsChrome.tabsQuery();
       for (const tab of tabs) {
         if (
@@ -118,9 +117,9 @@
 
     var extensionsUrl = `chrome://extensions/?id=${chrome.runtime.id}`;
     document
-      .getElementById('backgroundPage')
+      .querySelector('#backgroundPage')
       .setAttribute('href', extensionsUrl);
-    document.getElementById('backgroundPage').onclick = function() {
+    document.querySelector('#backgroundPage').onclick = function() {
       chrome.tabs.create({ url: extensionsUrl });
     };
 

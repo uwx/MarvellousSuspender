@@ -6,7 +6,7 @@
  * http://github.com/greatsuspender/thegreatsuspender
  * ༼ つ ◕_◕ ༽つ
 */
-const tgs = (function() {
+const tgs = window.tgs = (function() {
   const ICON_SUSPENSION_ACTIVE = {
     '16': 'img/ic_suspendy_16x16.png',
     '32': 'img/ic_suspendy_32x32.png',

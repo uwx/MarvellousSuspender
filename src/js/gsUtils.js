@@ -311,21 +311,20 @@ const gsUtils = {
   },
 
   checkSpecificWhiteList: function(url, whitelistString) {
-    let whitelistItems = whitelistString
-        ? whitelistString.split(/\s+/)
-        : [],
-      whitelisted;
+    const whitelistItems = whitelistString
+      ? whitelistString.split(/\s+/)
+      : [];
 
-    whitelisted = whitelistItems.some(function(item) {
+    const whitelisted = whitelistItems.some(item => {
       return gsUtils.testForMatch(item, url);
-    }, this);
+    });
     return whitelisted;
   },
 
   removeFromWhitelist: function(url) {
-    let oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '',
-      whitelistItems = oldWhitelistString.split(/\s+/).sort(),
-      i;
+    const oldWhitelistString = gsStorage.getOption(gsStorage.WHITELIST) || '';
+    const whitelistItems = oldWhitelistString.split(/\s+/).sort();
+    let i;
 
     for (i = whitelistItems.length - 1; i >= 0; i--) {
       if (gsUtils.testForMatch(whitelistItems[i], url)) {
@@ -627,9 +626,10 @@ const gsUtils = {
    * @returns {string}
    */
   htmlEncode: function(text) {
+    // eslint-disable-next-line unicorn/prefer-dom-node-append
     return document
       .createElement('pre')
-      .append(text).parentNode.innerHTML;
+      .appendChild(document.createTextNode(text)).parentNode.innerHTML;
   },
 
   getChromeVersion: function() {

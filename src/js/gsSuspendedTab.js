@@ -1,84 +1,8 @@
 /*global tgs, gsFavicon, gsStorage, gsSession, gsUtils, gsIndexedDb, gsChrome, chrome */
 // eslint-disable-next-line no-unused-vars
-const gsSuspendedTab = (function() {
+const gsSuspendedTab = window.gsSuspendedTab = (function() {
   async function initTab(tab, tabView, { quickInit }) {
-    if (!tabView) {
-      gsUtils.warning(
-        tab.id,
-        'Could not get internalTabView for suspended tab',
-      );
-    }
-    const suspendedUrl = tab.url;
-
-    // Set sessionId for subsequent checks
-    tabView.document.sessionId = gsSession.getSessionId();
-
-    // Set title
-    let title = gsUtils.getSuspendedTitle(suspendedUrl);
-    if (title.includes('<')) {
-      // Encode any raw html tags that might be used in the title
-      title = gsUtils.htmlEncode(title);
-    }
-    setTitle(tabView.document, title);
-
-    // Set faviconMeta
-    const faviconMeta = await gsFavicon.getFaviconMetaData(tab);
-    setFaviconMeta(tabView.document, faviconMeta);
-
-    if (quickInit) {
-      return;
-    }
-
-    gsUtils.localiseHtml(tabView.document);
-
-    const options = gsStorage.getSettings();
-    const originalUrl = gsUtils.getOriginalUrl(suspendedUrl);
-
-    // Add event listeners
-    setUnloadTabHandler(tabView.window, tab);
-    setUnsuspendTabHandlers(tabView.document, tab);
-
-    // Set imagePreview
-    const previewMode = options[gsStorage.SCREEN_CAPTURE];
-    const previewUri = await getPreviewUri(suspendedUrl);
-    await toggleImagePreviewVisibility(
-      tabView.document,
-      tab,
-      previewMode,
-      previewUri,
-    );
-
-    // Set theme
-    const theme = options[gsStorage.THEME];
-    const isLowContrastFavicon = faviconMeta.isDark;
-    setTheme(tabView.document, theme, isLowContrastFavicon);
-
-    // Set command
-    const suspensionToggleHotkey = await tgs.getSuspensionToggleHotkey();
-    setCommand(tabView.document, suspensionToggleHotkey);
-
-    // Set url
-    setUrl(tabView.document, originalUrl);
-
-    // Set reason
-    const suspendReasonInt = tgs.getTabStatePropForTabId(
-      tab.id,
-      tgs.STATE_SUSPEND_REASON,
-    );
-    let suspendReason = null;
-    if (suspendReasonInt === 3) {
-      suspendReason = chrome.i18n.getMessage('js_suspended_low_memory');
-    }
-    setReason(tabView.document, suspendReason);
-
-    // Show the view
-    showContents(tabView.document);
-
-    // Set scrollPosition (must come after showing page contents)
-    const scrollPosition = gsUtils.getSuspendedScrollPosition(suspendedUrl);
-    setScrollPosition(tabView.document, scrollPosition, previewMode);
-    tgs.setTabStatePropForTabId(tab.id, tgs.STATE_SCROLL_POS, scrollPosition);
-    // const whitelisted = gsUtils.checkWhiteList(originalUrl);
+    // Nothing
   }
 
   function showNoConnectivityMessage(tabView) {

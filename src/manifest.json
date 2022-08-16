@@ -64,7 +64,7 @@
   "web_accessible_resources": [
     "suspended.html"
   ],
-  "content_security_policy": "script-src 'self'; object-src 'self'; child-src 'self'; connect-src 'self'; img-src 'self' data: chrome:; style-src 'self'; default-src 'self'",
+  "content_security_policy": "script-src 'self'; object-src 'self'; child-src 'self'; connect-src 'self'; img-src 'self' data: chrome:; style-src 'self' 'sha256-M4UIpxoi22dnBl7UAC0WVSEm55+st6bsZkmw/kIwR9Q='; default-src 'self'",
   "incognito": "split",
   "manifest_version": 2,
   "minimum_chrome_version": "55",

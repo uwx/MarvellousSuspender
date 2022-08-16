@@ -1,13 +1,11 @@
 /*global tgs, gsStorage, gsSession, gsUtils */
-(function(global) {
-  'use strict';
-
+(function (global) {
   chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
 
-  var globalActionElListener;
+  let globalActionElListener;
 
-  var getTabStatus = function(retriesRemaining, callback) {
-    tgs.getActiveTabStatus(function(status) {
+  const getTabStatus = function (retriesRemaining, callback) {
+    tgs.getActiveTabStatus(function (status) {
       if (
         status !== gsUtils.STATUS_UNKNOWN &&
         status !== gsUtils.STATUS_LOADING
@@ -16,20 +14,20 @@
       } else if (retriesRemaining === 0) {
         callback(status);
       } else {
-        var timeout = 1000;
+        let timeout = 1000;
         if (!gsSession.isInitialising()) {
           retriesRemaining--;
           timeout = 200;
         }
-        setTimeout(function() {
+        setTimeout(function () {
           getTabStatus(retriesRemaining, callback);
         }, timeout);
       }
     });
   };
   function getTabStatusAsPromise(retries, allowTransientStates) {
-    return new Promise(function(resolve) {
-      getTabStatus(retries, function(status) {
+    return new Promise(function (resolve) {
+      getTabStatus(retries, function (status) {
         if (
           !allowTransientStates &&
           (status === gsUtils.STATUS_UNKNOWN ||
@@ -42,10 +40,10 @@
     });
   }
   function getSelectedTabsAsPromise() {
-    return new Promise(function(resolve) {
+    return new Promise(function (resolve) {
       chrome.tabs.query(
         { highlighted: true, lastFocusedWindow: true },
-        function(tabs) {
+        function (tabs) {
           resolve(tabs);
         }
       );
@@ -56,7 +54,7 @@
     gsUtils.documentReadyAndLocalisedAsPromised(document),
     getTabStatusAsPromise(0, true),
     getSelectedTabsAsPromise(),
-  ]).then(function([domLoadedEvent, initialTabStatus, selectedTabs]) {
+  ]).then(function ([domLoadedEvent, initialTabStatus, selectedTabs]) {
     setSuspendSelectedVisibility(selectedTabs);
     setStatus(initialTabStatus);
     showPopupContents();
@@ -66,66 +64,68 @@
       initialTabStatus === gsUtils.STATUS_UNKNOWN ||
       initialTabStatus === gsUtils.STATUS_LOADING
     ) {
-      getTabStatusAsPromise(50, false).then(function(finalTabStatus) {
+      getTabStatusAsPromise(50, false).then(function (finalTabStatus) {
         setStatus(finalTabStatus);
       });
     }
   });
 
   function setSuspendCurrentVisibility(tabStatus) {
-    var suspendOneVisible = ![
-        gsUtils.STATUS_SUSPENDED,
-        gsUtils.STATUS_SPECIAL,
-        gsUtils.STATUS_BLOCKED_FILE,
-        gsUtils.STATUS_UNKNOWN,
-      ].includes(tabStatus),
-      whitelistVisible = ![
-        gsUtils.STATUS_WHITELISTED,
-        gsUtils.STATUS_SPECIAL,
-        gsUtils.STATUS_BLOCKED_FILE,
-        gsUtils.STATUS_UNKNOWN,
-      ].includes(tabStatus),
-      unsuspendVisible = false; //[gsUtils.STATUS_SUSPENDED].includes(tabStatus);
+    const suspendOneVisible = ![
+      gsUtils.STATUS_SUSPENDED,
+      gsUtils.STATUS_SPECIAL,
+      gsUtils.STATUS_BLOCKED_FILE,
+      gsUtils.STATUS_UNKNOWN,
+    ].includes(tabStatus);
+
+    const whitelistVisible = ![
+      gsUtils.STATUS_WHITELISTED,
+      gsUtils.STATUS_SPECIAL,
+      gsUtils.STATUS_BLOCKED_FILE,
+      gsUtils.STATUS_UNKNOWN,
+    ].includes(tabStatus);
+
+    const unsuspendVisible = false;
 
     if (suspendOneVisible) {
-      document.getElementById('suspendOne').style.display = 'block';
+      document.querySelector('#suspendOne').style.display = 'block';
     } else {
-      document.getElementById('suspendOne').style.display = 'none';
+      document.querySelector('#suspendOne').style.display = 'none';
     }
 
     if (whitelistVisible) {
-      document.getElementById('whitelistPage').style.display = 'block';
-      document.getElementById('whitelistDomain').style.display = 'block';
+      document.querySelector('#whitelistPage').style.display = 'block';
+      document.querySelector('#whitelistDomain').style.display = 'block';
     } else {
-      document.getElementById('whitelistPage').style.display = 'none';
-      document.getElementById('whitelistDomain').style.display = 'none';
+      document.querySelector('#whitelistPage').style.display = 'none';
+      document.querySelector('#whitelistDomain').style.display = 'none';
     }
 
     if (suspendOneVisible || whitelistVisible) {
-      document.getElementById('optsCurrent').style.display = 'block';
+      document.querySelector('#optsCurrent').style.display = 'block';
     } else {
-      document.getElementById('optsCurrent').style.display = 'none';
+      document.querySelector('#optsCurrent').style.display = 'none';
     }
 
     if (unsuspendVisible) {
-      document.getElementById('unsuspendOne').style.display = 'block';
+      document.querySelector('#unsuspendOne').style.display = 'block';
     } else {
-      document.getElementById('unsuspendOne').style.display = 'none';
+      document.querySelector('#unsuspendOne').style.display = 'none';
     }
   }
 
   function setSuspendSelectedVisibility(selectedTabs) {
     if (selectedTabs && selectedTabs.length > 1) {
-      document.getElementById('optsSelected').style.display = 'block';
+      document.querySelector('#optsSelected').style.display = 'block';
     } else {
-      document.getElementById('optsSelected').style.display = 'none';
+      document.querySelector('#optsSelected').style.display = 'none';
     }
   }
 
   function setStatus(status) {
     setSuspendCurrentVisibility(status);
 
-    var statusDetail = '';
+    let statusDetail = '';
     //  statusIconClass = '';
 
     // Update status icon and text
@@ -193,36 +193,33 @@
       status === gsUtils.STATUS_LOADING ||
       status === gsUtils.STATUS_UNKNOWN
     ) {
-      if (gsSession.isInitialising()) {
-        statusDetail = chrome.i18n.getMessage('js_popup_initialising');
-      } else {
-        statusDetail = chrome.i18n.getMessage('js_popup_unknown');
-      }
-      //    statusIconClass = 'fa fa-circle-o-notch';
+      statusDetail = gsSession.isInitialising()
+        ? chrome.i18n.getMessage('js_popup_initialising')
+        : chrome.i18n.getMessage('js_popup_unknown');
     } else if (status === 'error') {
       statusDetail = chrome.i18n.getMessage('js_popup_error');
       //    statusIconClass = 'fa fa-exclamation-triangle';
     } else {
       gsUtils.warning('popup', 'Could not process tab status of: ' + status);
     }
-    document.getElementById('statusDetail').innerHTML = statusDetail;
+    document.querySelector('#statusDetail').innerHTML = statusDetail;
     //  document.getElementById('statusIcon').className = statusIconClass;
     // if (status === gsUtils.STATUS_UNKNOWN || status === gsUtils.STATUS_LOADING) {
     //     document.getElementById('statusIcon').classList.add('fa-spin');
     // }
 
-    document.getElementById('header').classList.remove('willSuspend');
+    document.querySelector('#header').classList.remove('willSuspend');
     if (status === gsUtils.STATUS_NORMAL || status === gsUtils.STATUS_ACTIVE) {
-      document.getElementById('header').classList.add('willSuspend');
+      document.querySelector('#header').classList.add('willSuspend');
     }
     if (status === gsUtils.STATUS_BLOCKED_FILE) {
-      document.getElementById('header').classList.add('blockedFile');
+      document.querySelector('#header').classList.add('blockedFile');
     }
 
     // Update action handler
-    var actionEl = document.getElementsByTagName('a')[0];
+    const actionEl = document.querySelectorAll('a')[0];
     if (actionEl) {
-      var tgsHanderFunc;
+      let tgsHanderFunc;
       if (
         status === gsUtils.STATUS_NORMAL ||
         status === gsUtils.STATUS_ACTIVE
@@ -245,8 +242,8 @@
         actionEl.removeEventListener('click', globalActionElListener);
       }
       if (tgsHanderFunc) {
-        globalActionElListener = function(e) {
-          tgsHanderFunc(function(newTabStatus) {
+        globalActionElListener = function (e) {
+          tgsHanderFunc(function (newTabStatus) {
             setStatus(newTabStatus);
           });
           // window.close();
@@ -265,58 +262,58 @@
 
   function addClickHandlers() {
     document
-      .getElementById('unsuspendOne')
-      .addEventListener('click', function(e) {
+      .querySelector('#unsuspendOne')
+      .addEventListener('click', function (e) {
         tgs.unsuspendHighlightedTab();
         window.close();
       });
     document
-      .getElementById('suspendOne')
-      .addEventListener('click', function(e) {
+      .querySelector('#suspendOne')
+      .addEventListener('click', function (e) {
         tgs.suspendHighlightedTab();
         window.close();
       });
     document
-      .getElementById('suspendAll')
-      .addEventListener('click', function(e) {
+      .querySelector('#suspendAll')
+      .addEventListener('click', function (e) {
         tgs.suspendAllTabs(false);
         window.close();
       });
     document
-      .getElementById('unsuspendAll')
-      .addEventListener('click', function(e) {
+      .querySelector('#unsuspendAll')
+      .addEventListener('click', function (e) {
         tgs.unsuspendAllTabs();
         window.close();
       });
     document
-      .getElementById('suspendSelected')
-      .addEventListener('click', function(e) {
+      .querySelector('#suspendSelected')
+      .addEventListener('click', function (e) {
         tgs.suspendSelectedTabs();
         window.close();
       });
     document
-      .getElementById('unsuspendSelected')
-      .addEventListener('click', function(e) {
+      .querySelector('#unsuspendSelected')
+      .addEventListener('click', function (e) {
         tgs.unsuspendSelectedTabs();
         window.close();
       });
     document
-      .getElementById('whitelistDomain')
-      .addEventListener('click', function(e) {
+      .querySelector('#whitelistDomain')
+      .addEventListener('click', function (e) {
         tgs.whitelistHighlightedTab(false);
         setStatus(gsUtils.STATUS_WHITELISTED);
         // window.close();
       });
     document
-      .getElementById('whitelistPage')
-      .addEventListener('click', function(e) {
+      .querySelector('#whitelistPage')
+      .addEventListener('click', function (e) {
         tgs.whitelistHighlightedTab(true);
         setStatus(gsUtils.STATUS_WHITELISTED);
         // window.close();
       });
     document
-      .getElementById('settingsLink')
-      .addEventListener('click', function(e) {
+      .querySelector('#settingsLink')
+      .addEventListener('click', function (e) {
         chrome.tabs.create({
           url: chrome.extension.getURL('options.html'),
         });

@@ -1,7 +1,5 @@
 /*global historyItems, gsMessages, gsSession, gsStorage, gsIndexedDb, gsChrome, gsUtils */
-(function(global) {
-  'use strict';
-
+(function (global) {
   try {
     chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
   } catch (e) {
@@ -9,8 +7,8 @@
     return;
   }
 
-  var restoreAttempted = false;
-  var tabsToRecover = [];
+  let restoreAttempted = false;
+  const tabsToRecover = [];
 
   async function getRecoverableTabs(currentTabs) {
     const lastSession = await gsIndexedDb.fetchLastSession();
@@ -20,7 +18,7 @@
       for (const window of lastSession.windows) {
         for (const tabProperties of window.tabs) {
           if (gsUtils.isSuspendedTab(tabProperties)) {
-            var originalUrl = gsUtils.getOriginalUrl(tabProperties.url);
+            const originalUrl = gsUtils.getOriginalUrl(tabProperties.url);
             // Ignore suspended tabs from previous session that exist unsuspended now
             const originalTab = currentTabs.find(o => o.url === originalUrl);
             if (!originalTab) {
@@ -36,10 +34,10 @@
   }
 
   function removeTabFromList(tabToRemove) {
-    const recoveryTabsEl = document.getElementById('recoveryTabs');
+    const recoveryTabsEl = document.querySelector('#recoveryTabs');
     const childLinks = recoveryTabsEl.children;
 
-    for (var i = 0; i < childLinks.length; i++) {
+    for (let i = 0; i < childLinks.length; i++) {
       const element = childLinks[i];
       const url = tabToRemove.url || tabToRemove.pendingUrl;
       const originalUrl = gsUtils.isSuspendedUrl(url)
@@ -47,24 +45,24 @@
         : url;
 
       if (
-        element.getAttribute('data-url') === originalUrl ||
-        element.getAttribute('data-tabId') == tabToRemove.id
+        element.dataset.url === originalUrl ||
+        element.dataset.tabid == tabToRemove.id
       ) {
         // eslint-disable-line eqeqeq
-        recoveryTabsEl.removeChild(element);
+        element.remove();
       }
     }
 
     //if removing the last element.. (re-get the element this function gets called asynchronously
-    if (document.getElementById('recoveryTabs').children.length === 0) {
+    if (document.querySelector('#recoveryTabs').children.length === 0) {
       //if we have already clicked the restore button then redirect to success page
       if (restoreAttempted) {
-        document.getElementById('suspendy-guy-inprogress').style.display =
+        document.querySelector('#suspendy-guy-inprogress').style.display =
           'none';
-        document.getElementById('recovery-inprogress').style.display = 'none';
-        document.getElementById('suspendy-guy-complete').style.display =
+        document.querySelector('#recovery-inprogress').style.display = 'none';
+        document.querySelector('#suspendy-guy-complete').style.display =
           'inline-block';
-        document.getElementById('recovery-complete').style.display =
+        document.querySelector('#recovery-complete').style.display =
           'inline-block';
 
         //otherwise we have no tabs to recover so just hide references to recovery
@@ -75,44 +73,44 @@
   }
 
   function showTabSpinners() {
-    var recoveryTabsEl = document.getElementById('recoveryTabs'),
+    const recoveryTabsEl = document.querySelector('#recoveryTabs'),
       childLinks = recoveryTabsEl.children;
 
-    for (var i = 0; i < childLinks.length; i++) {
-      var tabContainerEl = childLinks[i];
-      tabContainerEl.removeChild(tabContainerEl.firstChild);
-      var spinnerEl = document.createElement('span');
+    for (let i = 0; i < childLinks.length; i++) {
+      const tabContainerEl = childLinks[i];
+      tabContainerEl.firstChild.remove();
+      const spinnerEl = document.createElement('span');
       spinnerEl.classList.add('faviconSpinner');
       tabContainerEl.insertBefore(spinnerEl, tabContainerEl.firstChild);
     }
   }
 
   function hideRecoverySection() {
-    var recoverySectionEls = document.getElementsByClassName('recoverySection');
-    for (var i = 0; i < recoverySectionEls.length; i++) {
+    const recoverySectionEls = document.querySelectorAll('.recoverySection');
+    for (let i = 0; i < recoverySectionEls.length; i++) {
       recoverySectionEls[i].style.display = 'none';
     }
-    document.getElementById('restoreSession').style.display = 'none';
+    document.querySelector('#restoreSession').style.display = 'none';
   }
 
-  gsUtils.documentReadyAndLocalisedAsPromised(document).then(async function() {
-    var restoreEl = document.getElementById('restoreSession'),
-      manageEl = document.getElementById('manageManuallyLink'),
-      previewsEl = document.getElementById('previewsOffBtn'),
-      recoveryEl = document.getElementById('recoveryTabs'),
-      warningEl = document.getElementById('screenCaptureNotice'),
-      tabEl;
+  gsUtils.documentReadyAndLocalisedAsPromised(document).then(async function () {
+    const restoreEl = document.querySelector('#restoreSession');
+    const manageEl = document.querySelector('#manageManuallyLink');
+    const previewsEl = document.querySelector('#previewsOffBtn');
+    const recoveryEl = document.querySelector('#recoveryTabs');
+    const warningEl = document.querySelector('#screenCaptureNotice');
+    let tabEl;
 
-    manageEl.onclick = function(e) {
+    manageEl.addEventListener('click', function (e) {
       e.preventDefault();
       chrome.tabs.create({ url: chrome.extension.getURL('history.html') });
-    };
+    });
 
     if (previewsEl) {
-      previewsEl.onclick = function(e) {
+      previewsEl.addEventListener('click', function (e) {
         gsStorage.setOptionAndSync(gsStorage.SCREEN_CAPTURE, '0');
         window.location.reload();
-      };
+      });
 
       //show warning if screen capturing turned on
       if (gsStorage.getOption(gsStorage.SCREEN_CAPTURE) !== '0') {
@@ -120,7 +118,7 @@
       }
     }
 
-    var performRestore = async function() {
+    const performRestore = async function () {
       restoreAttempted = true;
       restoreEl.className += ' btnDisabled';
       restoreEl.removeEventListener('click', performRestore);
@@ -140,25 +138,25 @@
       return;
     }
 
-    for (var tabToRecover of tabsToRecover) {
+    for (const tabToRecover of tabsToRecover) {
       tabToRecover.title = gsUtils.getCleanTabTitle(tabToRecover);
       tabToRecover.url = gsUtils.getOriginalUrl(tabToRecover.url);
       tabEl = await historyItems.createTabHtml(tabToRecover, false);
-      tabEl.onclick = function() {
-        return function(e) {
+      tabEl.addEventListener('click', function () {
+        return function (e) {
           e.preventDefault();
           chrome.tabs.create({ url: tabToRecover.url, active: false });
           removeTabFromList(tabToRecover);
         };
-      };
-      recoveryEl.appendChild(tabEl);
+      });
+      recoveryEl.append(tabEl);
     }
 
-    var currentSuspendedTabs = currentTabs.filter(o =>
+    const currentSuspendedTabs = currentTabs.filter(o =>
       gsUtils.isSuspendedTab(o)
     );
     for (const suspendedTab of currentSuspendedTabs) {
-      gsMessages.sendPingToTab(suspendedTab.id, function(error) {
+      gsMessages.sendPingToTab(suspendedTab.id, function (error) {
         if (error) {
           gsUtils.warning(suspendedTab.id, 'Failed to sendPingToTab', error);
         } else {

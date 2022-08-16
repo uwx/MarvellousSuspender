@@ -1,7 +1,5 @@
 /*global tgs, gsUtils, gsFavicon, gsStorage, gsChrome */
-(function(global) {
-  'use strict';
-
+(function (global) {
   try {
     chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
   } catch (e) {
@@ -9,22 +7,22 @@
     return;
   }
 
-  var currentTabs = {};
+  const currentTabs = {};
 
   function generateTabInfo(info) {
     // console.log(info.tabId, info);
-    var timerStr =
+    const timerStr =
       info && info.timerUp && info && info.timerUp !== '-'
         ? new Date(info.timerUp).toLocaleString()
         : '-';
-    var html = '',
-      windowId = info && info.windowId ? info.windowId : '?',
-      tabId = info && info.tabId ? info.tabId : '?',
-      tabIndex = info && info.tab ? info.tab.index : '?',
-      favicon = info && info.tab ? info.tab.favIconUrl : '',
-      tabTitle = info && info.tab ? gsUtils.htmlEncode(info.tab.title) : '?',
-      tabTimer = timerStr,
-      tabStatus = info ? info.status : '?';
+    let html = '';
+    const windowId = info && info.windowId ? info.windowId : '?';
+    const tabId = info && info.tabId ? info.tabId : '?';
+    const tabIndex = info && info.tab ? info.tab.index : '?';
+    let favicon = info && info.tab ? info.tab.favIconUrl : '';
+    const tabTitle = info && info.tab ? gsUtils.htmlEncode(info.tab.title) : '?';
+    const tabTimer = timerStr;
+    const tabStatus = info ? info.status : '?';
 
     favicon =
       favicon && favicon.indexOf('data') === 0
@@ -68,14 +66,14 @@
 
   function addFlagHtml(elementId, getterFn, setterFn) {
     document.getElementById(elementId).innerHTML = getterFn();
-    document.getElementById(elementId).addEventListener('click', function(e) {
+    document.getElementById(elementId).addEventListener('click', function (e) {
       const newVal = !getterFn();
       setterFn(newVal);
       document.getElementById(elementId).innerHTML = newVal;
     });
   }
 
-  gsUtils.documentReadyAndLocalisedAsPromised(document).then(async function() {
+  gsUtils.documentReadyAndLocalisedAsPromised(document).then(async function () {
     //Set theme
     document.body.classList.add(gsStorage.getOption(gsStorage.THEME) === 'dark' ? 'dark' : null);
     await fetchInfo();
@@ -99,12 +97,12 @@
         );
       }
     );
-    document.querySelector('#claimSuspendedTabs').onclick = async function(e) {
+    document.querySelector('#claimSuspendedTabs').addEventListener('click', async function (e) {
       const tabs = await gsChrome.tabsQuery();
       for (const tab of tabs) {
         if (
           gsUtils.isSuspendedTab(tab, true) &&
-          tab.url.indexOf(chrome.runtime.id) < 0
+          !tab.url.includes(chrome.runtime.id)
         ) {
           const newUrl = tab.url.replace(
             gsUtils.getRootUrl(tab.url),
@@ -113,15 +111,15 @@
           await gsChrome.tabsUpdate(tab.id, { url: newUrl });
         }
       }
-    };
+    });
 
-    var extensionsUrl = `chrome://extensions/?id=${chrome.runtime.id}`;
+    const extensionsUrl = `chrome://extensions/?id=${chrome.runtime.id}`;
     document
       .querySelector('#backgroundPage')
       .setAttribute('href', extensionsUrl);
-    document.querySelector('#backgroundPage').onclick = function() {
+    document.querySelector('#backgroundPage').addEventListener('click', function () {
       chrome.tabs.create({ url: extensionsUrl });
-    };
+    });
 
     /*
         chrome.processes.onUpdatedWithMemory.addListener(function (processes) {

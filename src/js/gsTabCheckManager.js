@@ -1,6 +1,6 @@
 /*global tgs, gsStorage, gsSession, gsMessages, gsUtils, gsTabDiscardManager, gsChrome, GsTabQueue, gsSuspendedTab */
 // eslint-disable-next-line no-unused-vars
-const gsTabCheckManager = (function() {
+const gsTabCheckManager = window.gsTabCheckManager = (function() {
   const DEFAULT_CONCURRENT_TAB_CHECKS = 3;
   const DEFAULT_TAB_CHECK_TIMEOUT = 60 * 1000;
   const DEFAULT_TAB_CHECK_PROCESSING_DELAY = 500;

@@ -1,4 +1,3 @@
-/*global chrome */
 /*
  * The Great Suspender
  * Copyright (C) 2017 Dean Oemcke
@@ -6,31 +5,25 @@
  * http://github.com/greatsuspender/thegreatsuspender
  * ლ(ಠ益ಠლ)
 */
-(function() {
-  'use strict';
-
+(function () {
   let isFormListenerInitialised = false;
   let isReceivingFormInput = false;
   let isIgnoreForms = false;
   let tempWhitelist = false;
 
   function formInputListener(e) {
-    if (!isReceivingFormInput && !tempWhitelist) {
-      if (event.keyCode >= 48 && event.keyCode <= 90 && event.target.tagName) {
-        if (
-          event.target.tagName.toUpperCase() === 'INPUT' ||
-          event.target.tagName.toUpperCase() === 'TEXTAREA' ||
-          event.target.tagName.toUpperCase() === 'FORM' ||
-          event.target.isContentEditable === true ||
-          event.target.type === "application/pdf"
-        ) {
-          isReceivingFormInput = true;
-          if (!isBackgroundConnectable()) {
-            return false;
-          }
-          chrome.runtime.sendMessage(buildReportTabStatePayload());
-        }
+    if (!isReceivingFormInput && !tempWhitelist && event.keyCode >= 48 && event.keyCode <= 90 && event.target.tagName && (
+      event.target.tagName.toUpperCase() === 'INPUT' ||
+      event.target.tagName.toUpperCase() === 'TEXTAREA' ||
+      event.target.tagName.toUpperCase() === 'FORM' ||
+      event.target.isContentEditable === true ||
+      event.target.type === 'application/pdf'
+    )) {
+      isReceivingFormInput = true;
+      if (!isBackgroundConnectable()) {
+        return false;
       }
+      chrome.runtime.sendMessage(buildReportTabStatePayload());
     }
   }
 
@@ -44,23 +37,19 @@
 
   function init() {
     //listen for background events
-    chrome.runtime.onMessage.addListener(function(
+    chrome.runtime.onMessage.addListener(function (
       request,
       sender,
       sendResponse
     ) {
-      if (Object.hasOwn(request, 'action')) {
-        if (request.action === 'requestInfo') {
-          sendResponse(buildReportTabStatePayload());
-          return false;
-        }
+      if (Object.hasOwn(request, 'action') && request.action === 'requestInfo') {
+        sendResponse(buildReportTabStatePayload());
+        return false;
       }
 
-      if (Object.hasOwn(request, 'scrollPos')) {
-        if (request.scrollPos !== '' && request.scrollPos !== '0') {
-          document.body.scrollTop = request.scrollPos;
-          document.documentElement.scrollTop = request.scrollPos;
-        }
+      if (Object.hasOwn(request, 'scrollPos') && request.scrollPos !== '' && request.scrollPos !== '0') {
+        document.body.scrollTop = request.scrollPos;
+        document.documentElement.scrollTop = request.scrollPos;
       }
       if (Object.hasOwn(request, 'ignoreForms')) {
         isIgnoreForms = request.ignoreForms;
@@ -80,14 +69,13 @@
     });
   }
 
-  function waitForRuntimeReady(retries) {
-    retries = retries || 0;
+  function waitForRuntimeReady(retries = 0) {
     return new Promise(r => r(chrome.runtime)).then(chromeRuntime => {
       if (chromeRuntime) {
-        return Promise.resolve();
+        return;
       }
       if (retries > 3) {
-        return Promise.reject('Failed waiting for chrome.runtime');
+        throw new Error('Failed waiting for chrome.runtime');
       }
       retries += 1;
       return new Promise(r => window.setTimeout(r, 500)).then(() =>
@@ -98,7 +86,7 @@
 
   function isBackgroundConnectable() {
     try {
-      var port = chrome.runtime.connect();
+      const port = chrome.runtime.connect();
       if (port) {
         port.disconnect();
         return true;

@@ -1,7 +1,5 @@
 /*global historyUtils, gsSession, gsChrome, gsUtils */
 (function(global) {
-  'use strict';
-
   try {
     chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
   } catch (e) {
@@ -10,18 +8,18 @@
   }
 
   gsUtils.documentReadyAndLocalisedAsPromised(document).then(function() {
-    document.getElementById('exportBackupBtn').onclick = async function(e) {
+    document.querySelector('#exportBackupBtn').addEventListener('click', async function(e) {
       const currentSession = await gsSession.buildCurrentSession();
       historyUtils.exportSession(currentSession, function() {
-        document.getElementById('exportBackupBtn').style.display = 'none';
+        document.querySelector('#exportBackupBtn').style.display = 'none';
       });
-    };
-    document.getElementById('setFilePermissiosnBtn').onclick = async function(
+    });
+    document.querySelector('#setFilePermissiosnBtn').addEventListener('click', async function(
       e
     ) {
       await gsChrome.tabsCreate({
         url: 'chrome://extensions?id=' + chrome.runtime.id,
       });
-    };
+    });
   });
 })(this);

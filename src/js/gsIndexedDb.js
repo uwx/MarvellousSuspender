@@ -1,7 +1,5 @@
 /*global db, tgs, gsUtils, gsChrome, gsSession */
-'use strict';
-
-var gsIndexedDb = {
+const gsIndexedDb = window.gsIndexedDb = {
   DB_SERVER: 'tgs',
   DB_VERSION: '3',
   DB_PREVIEWS: 'gsPreviews',
@@ -376,7 +374,7 @@ var gsIndexedDb = {
 
   addToSavedSessions: async function(session) {
     //if sessionId does not already have an underscore prefix then generate a new unique sessionId for this saved session
-    if (session.sessionId.indexOf('_') < 0) {
+    if (!session.sessionId.includes('_')) {
       session.sessionId = '_' + gsUtils.generateHashCode(session.name);
     }
 
@@ -416,13 +414,13 @@ var gsIndexedDb = {
       }
     });
 
-    //update session
-    if (gsSession.windows.length > 0) {
-      await gsIndexedDb.updateSession(gsSession);
-      //or remove session if it no longer contains any windows
-    } else {
-      await gsIndexedDb.removeSessionFromHistory(sessionId);
-    }
+    await (
+      gsSession.windows.length > 0
+        //update session
+        ? gsIndexedDb.updateSession(gsSession)
+        //or remove session if it no longer contains any windows
+        : gsIndexedDb.removeSessionFromHistory(sessionId)
+    );
     const updatedSession = await gsIndexedDb.fetchSessionBySessionId(sessionId);
     return updatedSession;
   },
@@ -575,7 +573,7 @@ var gsIndexedDb = {
         for (const cookie of cookies) {
           if (cookie.name.indexOf('gsScrollPos') === 0) {
             if (cookie.value && cookie.value !== '0') {
-              const tabId = cookie.name.substr(12);
+              const tabId = cookie.name.slice(12);
               scrollPosByTabId[tabId] = cookie.value;
             }
             let prefix = cookie.secure ? 'https://' : 'http://';

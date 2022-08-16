@@ -3,7 +3,7 @@
 let debugInfo = true;
 let debugError = true;
 
-const gsUtils = {
+const gsUtils = window.gsUtils = {
   STATUS_NORMAL: 'normal',
   STATUS_LOADING: 'loading',
   STATUS_SPECIAL: 'special',
@@ -22,11 +22,13 @@ const gsUtils = {
   STATUS_UNKNOWN: 'unknown',
 
   // eslint-disable-line no-unused-vars
+  /**
+   * @param {unknown[]} array
+   * @param {unknown} value
+   * @returns {boolean}
+   */
   contains: function(array, value) {
-    for (let i = 0; i < array.length; i++) {
-      if (array[i] === value) return true;
-    }
-    return false;
+    return array.includes(value);
   },
 
   dir: function(object) {
@@ -36,7 +38,6 @@ const gsUtils = {
   },
   log: function(id, text, ...args) {
     if (debugInfo) {
-      args = args || [];
       console.log(id, (new Date() + '').split(' ')[4], text, ...args);
     }
   },

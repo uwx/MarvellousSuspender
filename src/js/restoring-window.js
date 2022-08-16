@@ -1,7 +1,5 @@
 /*global gsUtils */
 (function(global) {
-  'use strict';
-
   try {
     chrome.extension.getBackgroundPage().tgs.setViewGlobals(global);
   } catch (e) {

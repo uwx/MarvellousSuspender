@@ -1,20 +1,17 @@
-// TODO idea: Put scripting for suspended page here (and then make it execute in suspended.html) instead of gsSuspendedTab
-// then calls tgs.unsuspendTab from background page remotely as needed
-
 /* globals gsSession, gsFavicon, gsStorage, gsChrome, gsIndexedDb, gsUtils */
 
 const backgroundPage = chrome.extension.getBackgroundPage();
 const { tgs } = backgroundPage;
 
-let i = false;
+let notFail = false;
 try {
   tgs.setViewGlobals(this);
-  i = true;
+  notFail = true;
 } catch (e) {
   window.setTimeout(() => window.location.reload(), 1000);
 }
 
-if (i) {
+if (notFail) {
   chrome.tabs.getCurrent(tab => initTab(tab, {quickInit: false}));
 }
 

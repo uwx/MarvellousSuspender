@@ -607,7 +607,7 @@ const tgs = window.tgs = (function() {
       // chrome.tabs.update if this is set to true. This gets unset again after tab
       // has reloaded via the STATE_SET_AUTODISCARDABLE flag.
       gsUtils.log(tab.id, 'Unsuspending tab via chrome.tabs.update');
-      chrome.tabs.update(tab.id, { url: originalUrl, autoDiscardable: false });
+      chrome.tabs.update(tab.id, { url: originalUrl });
       return;
     }
 

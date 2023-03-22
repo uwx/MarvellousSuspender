@@ -128,9 +128,13 @@ const gsUtils = window.gsUtils = {
     return errorString;
   },
   getStackTrace: function() {
-    const obj = {};
-    Error.captureStackTrace(obj, gsUtils.getStackTrace);
-    return obj.stack;
+	if ('captureStackTrace' in Error) {
+	  const obj = {};
+	  Error.captureStackTrace(obj, gsUtils.getStackTrace);
+	  return obj.stack;
+	} else {
+	  return new Error().stack;
+	}
   },
 
   isDebugInfo: function() {
